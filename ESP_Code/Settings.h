@@ -61,6 +61,8 @@ extern const char PASSWORD[] = "PASSW0RD";
 
 // Uncomment if your device is a Duino BlushyBox device
 // #define BLUSHYBOX
+
+// #define DISPLAY_ST7735
 // -------------------------------------------------------------- //
 
 // ---------------------- IoT examples -------------------------- //
@@ -166,6 +168,11 @@ extern unsigned int ping = 0;
     // initialize the library with the numbers of the interface pins
     //                         RS E  D4 D5 D6 D7
     Adafruit_LiquidCrystal lcd(1, 2, 3, 4, 5, 6);
+#endif
+
+#if defined(DISPLAY_ST7735)
+    #include <TFT_eSPI.h>
+    TFT_eSPI tft = TFT_eSPI();
 #endif
 
 #if defined(USE_HSU07M)

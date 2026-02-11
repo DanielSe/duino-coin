@@ -21,6 +21,13 @@
     static byte msec[] = {0x0A, 0x15, 0x11, 0x06, 0x08, 0x04, 0x02, 0x0C};
 #endif
 
+#if defined(DISPLAY_ST7735)
+    static const unsigned char image_network_1_bar_bits[] PROGMEM = {0x00,0x70,0x00,0x50,0x00,0x50,0x00,0x50,0x00,0x57,0x00,0x55,0x00,0x55,0x00,0x55,0x70,0x55,0x50,0x55,0x50,0x55,0x50,0x55,0x57,0x55,0x57,0x55,0x77,0x77,0x00,0x00};
+    static const unsigned char image_network_2_bars_bits[] PROGMEM = {0x00,0x70,0x00,0x50,0x00,0x50,0x00,0x50,0x00,0x57,0x00,0x55,0x00,0x55,0x00,0x55,0x70,0x55,0x70,0x55,0x70,0x55,0x70,0x55,0x77,0x55,0x77,0x55,0x77,0x77,0x00,0x00};
+    static const unsigned char image_network_3_bars_bits[] PROGMEM = {0x00,0x70,0x00,0x50,0x00,0x50,0x00,0x50,0x00,0x57,0x00,0x57,0x00,0x57,0x00,0x57,0x70,0x57,0x70,0x57,0x70,0x57,0x70,0x57,0x77,0x57,0x77,0x57,0x77,0x77,0x00,0x00};
+    static const unsigned char image_network_4_bars_bits[] PROGMEM = {0x00,0x70,0x00,0x70,0x00,0x70,0x00,0x70,0x00,0x77,0x00,0x77,0x00,0x77,0x00,0x77,0x70,0x77,0x70,0x77,0x70,0x77,0x70,0x77,0x77,0x77,0x77,0x77,0x77,0x77,0x00,0x00};
+#endif
+
   #if defined(DISPLAY_SSD1306)
     void drawStrMultiline(const char *msg, int xloc, int yloc) {
      //https://github.com/olikraus/u8g2/discussions/1479
@@ -56,7 +63,7 @@
     }
 #endif
 
-#if defined(DISPLAY_SSD1306) || defined(DISPLAY_16X2)
+#if defined(DISPLAY_SSD1306) || defined(DISPLAY_16X2) || defined(DISPLAY_ST7735)
     void screen_setup() {
       // Ran during setup()
       // Abstraction layer: screen initialization
@@ -78,11 +85,59 @@
           lcd.home();
           lcd.clear();
       #endif
+
+      #if defined(DISPLAY_ST7735)
+          // Initialize screen
+          tft.init();
+          tft.setRotation(1);
+          tft.fillScreen(TFT_BLACK);
+
+          pinMode(38, OUTPUT);
+          digitalWrite(38, 0);
+      #endif
     }
 
+    String get_features_str() {
+      String features_str = "OTA ";
+      #if defined(USE_LAN)
+        features_str += "LAN ";
+      #endif
+      #if defined(LED_BLINKING)
+        features_str += "Blink ";
+      #endif
+      #if defined(SERIAL_PRINTING)
+        features_str += "Serial ";
+      #endif
+      #if defined(WEB_DASHBOARD)
+        features_str += "Webserver ";
+      #endif
+      #if defined(DISPLAY_16X2)
+        features_str += "LCD16X2 ";
+      #endif
+      #if defined(DISPLAY_SSD1306)
+        features_str += "SSD1306 ";
+      #endif
+      #if defined(DISPLAY_ST7735)
+        features_str += "ST7735 ";
+      #endif
+      #if defined(USE_INTERNAL_SENSOR)
+        features_str += "Int. sensor ";
+      #endif
+      #if defined(USE_DS18B20)
+        features_str += "DS18B20 ";
+      #endif
+      #if defined(USE_DHT)
+        features_str += "DHT ";
+      #endif
+      #if defined(USE_HSU07M)
+        features_str += "HSU07M ";
+      #endif
+      return features_str;
+    }
 
     void display_boot() {
       // Abstraction layer: compilation time, features, etc.
+      Serial.println("Display boot");
 
       #if defined(DISPLAY_16X2)
           lcd.clear();
@@ -133,43 +188,38 @@
           
           u8g2.drawStr(2, 37, "Features:");
           u8g2.setCursor(2, 46);
-          String features_str = "OTA ";
-          #if defined(USE_LAN)
-            features_str += "LAN ";
-          #endif
-          #if defined(LED_BLINKING)
-            features_str += "Blink ";
-          #endif
-          #if defined(SERIAL_PRINTING)
-            features_str += "Serial ";
-          #endif
-          #if defined(WEB_DASHBOARD)
-            features_str += "Webserver ";
-          #endif
-          #if defined(DISPLAY_16X2)
-            features_str += "LCD16X2 ";
-          #endif
-          #if defined(DISPLAY_SSD1306)
-            features_str += "SSD1306 ";
-          #endif
-          #if defined(USE_INTERNAL_SENSOR)
-            features_str += "Int. sensor ";
-          #endif
-          #if defined(USE_DS18B20)
-            features_str += "DS18B20 ";
-          #endif
-          #if defined(USE_DHT)
-            features_str += "DHT ";
-          #endif
-          #if defined(USE_HSU07M)
-            features_str += "HSU07M ";
-          #endif
+          String features_str = get_features_str();
           drawStrMultiline(features_str.c_str(), 2, 46);
           u8g2.sendBuffer();
       #endif
+
+      #if defined(DISPLAY_ST7735)
+          tft.fillScreen(TFT_BLACK);
+
+          tft.setTextFont(2);
+          tft.setTextColor(TFT_WHITE, TFT_BLACK);
+          tft.setCursor(2, 0);
+
+          tft.print("ESP32S3 ");
+          tft.print(getCpuFrequencyMhz());
+          tft.print(" MHz");
+
+          tft.setTextFont(1);
+          tft.drawLine(1, 27, 126, 27, TFT_WHITE);
+          tft.setCursor(2, 18);
+          tft.print("Compiled ");
+          tft.print(__DATE__);
+
+          tft.setCursor(2, 30);
+          tft.print("Features: ");
+
+          String features_str = get_features_str();
+          tft.setCursor(2, 40);
+          tft.print(features_str);
+      #endif
     }
 
-    void display_info(String message) {
+    void display_info_i(const String& message) {
       // Abstraction layer: info screens (setups)
       
       #if defined(DISPLAY_SSD1306)
@@ -205,11 +255,34 @@
           lcd.setCursor(0, 1);
           lcd.print(message);
       #endif
+
+      #if defined(DISPLAY_ST7735)
+          tft.fillScreen(TFT_BLACK);
+          tft.setTextColor(TFT_WHITE, TFT_BLACK);
+
+          tft.setTextFont(2);
+
+          tft.setCursor(0, 2);
+
+          tft.println("Duino-Coin");
+          tft.println(SOFTWARE_VERSION);
+          tft.println(message);
+      #endif
     }
 
+    void display_info(const String& message) {
+      #if defined(ESP32) && CORE == 2
+        DisplayData dataToSend;
+        dataToSend.message = message;
+        xQueueSend(displayQueue, &dataToSend, 0);
+        vTaskDelay(pdMS_TO_TICKS(100));
+      #else
+        display_info_i(message);
+      #endif
+    }
 
-    void display_mining_results(String hashrate, String accepted_shares, String total_shares, String uptime, String node, 
-                                String difficulty, String sharerate, String ping, String accept_rate) {
+    void display_mining_results_i(const String& hashrate, const String& accepted_shares, const String& total_shares, const String& uptime, const String& node, 
+                                const String& difficulty, const String& sharerate, const String& ping, const String& accept_rate) {
       // Ran after each found share
       // Abstraction layer: displaying mining results
       Serial.println("Displaying mining results");
@@ -289,6 +362,80 @@
           lcd.setCursor(12, 1);
           lcd.print(sharerate);
           lcd.print("s");
+      #endif
+
+      #if defined(DISPLAY_ST7735)
+          tft.fillScreen(TFT_BLACK);
+
+          tft.setTextColor(TFT_WHITE, TFT_BLACK);
+          tft.setTextFont(2);
+
+          tft.drawCentreString("DUCO MINER", 80, 0, 2);
+          tft.drawString(ping + "ms", 0, 0, 2);
+          // tft.setTextDatum(TR_DATUM);
+          // tft.drawString(sharerate, 160, 0, 2);
+          // tft.setTextDatum(TL_DATUM);
+
+          // Network
+          if (WiFi.RSSI() > -40) {
+              tft.drawXBitmap(144, 0, image_network_4_bars_bits, 15, 16, TFT_GREEN);
+          } else if (WiFi.RSSI() > -60) {
+              tft.drawXBitmap(144, 0, image_network_3_bars_bits, 15, 16, TFT_GREEN);
+          } else if (WiFi.RSSI() > -75) {
+              tft.drawXBitmap(144, 0, image_network_2_bars_bits, 15, 16, TFT_YELLOW);
+          } else {
+              tft.drawXBitmap(144, 0, image_network_1_bar_bits, 15, 16, TFT_RED); // Example: red for low signal
+          }
+
+          // Lines
+          tft.drawLine(0, 18, 160, 18, 0x2987);
+          tft.drawLine(80, 18, 80, 80, 0x2987);
+          tft.drawLine(0, 58, 160, 58, 0x2987);
+
+          // Hashrate
+          tft.setTextColor(0xd58a, TFT_BLACK);
+          tft.drawString("HR:", 0, 22, 1);
+          tft.drawString(hashrate, 0, 30, 4);
+
+          // Shares
+          tft.setTextColor(TFT_WHITE, TFT_BLACK);
+          tft.setTextFont(1);
+          tft.drawString("Shares:", 84, 22, 1);
+          tft.drawString(accepted_shares + " act", 84, 31, 1);
+          //tft.fillCircle(87, 31+2+1, 2, TFT_GREEN);
+          tft.drawString(total_shares + " tot", 84, 40, 1);
+          //tft.fillCircle(87, 40+2+1, 2, 0xd58a);
+          tft.drawString(sharerate + " rte", 84, 48, 1);
+
+          // Uptime
+          tft.drawString("Uptime:", 0, 60, 1);
+          tft.drawString(uptime, 0, 69, 1);
+
+          // Difficulty
+          tft.drawString("Diff:", 84, 60, 1);
+          tft.drawString(difficulty, 84, 69, 1);
+          
+      #endif
+    }
+
+    void display_mining_results(const String& hashrate, const String& accepted_shares, const String& total_shares, const String& uptime, const String& node, 
+                                const String& difficulty, const String& sharerate, const String& ping, const String& accept_rate) {
+      #if defined(ESP32) && CORE == 2
+        DisplayData dataToSend;
+        dataToSend.hashrate = hashrate;
+        dataToSend.accepted_shares;
+        dataToSend.total_shares;
+        dataToSend.uptime;
+        dataToSend.node;
+        dataToSend.difficulty;
+        dataToSend.sharerate;
+        dataToSend.ping;
+        dataToSend.accept_rate;
+
+        xQueueSend(displayQueue, &dataToSend, 0);
+        vTaskDelay(pdMS_TO_TICKS(100));
+      #else
+        display_mining_results_i(hashrate, accepted_shares, total_shares, uptime, node, difficulty, sharerate, ping, accept_rate);
       #endif
     }
 #endif
