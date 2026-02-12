@@ -809,7 +809,7 @@ void system_events_func(void* parameter) {
 
     for(;;) {
       if (xQueueReceive(displayQueue, &receivedData, portMAX_DELAY) == pdPASS) {
-        if (receivedData.message != NULL && receivedData.message.isEmpty()) {
+        if (receivedData.message != NULL && receivedData.message.length() > 0) {
           display_info_i(receivedData.message);
         } else {
           display_mining_results_i(receivedData.hashrate, receivedData.accepted_shares, receivedData.total_shares, receivedData.uptime, receivedData.node, receivedData.difficulty, receivedData.sharerate, receivedData.ping, receivedData.accept_rate);
