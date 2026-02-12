@@ -173,6 +173,7 @@ extern unsigned int ping = 0;
 #if defined(DISPLAY_ST7735)
     #include <TFT_eSPI.h>
     TFT_eSPI tft = TFT_eSPI();
+    TFT_eSprite tft_buffer = TFT_eSprite(&tft);
 #endif
 
 #if defined(USE_HSU07M)

@@ -96,6 +96,8 @@
           tft.setRotation(1);
           tft.fillScreen(TFT_BLACK);
 
+          tft_buffer.createSprite(160, 80);
+
           pinMode(38, OUTPUT);
           digitalWrite(38, 0);
       #endif
@@ -368,54 +370,54 @@
       #endif
 
       #if defined(DISPLAY_ST7735)
-          tft.fillScreen(TFT_BLACK);
+          tft_buffer.fillSprite(TFT_BLACK);
+          
+          tft_buffer.setTextColor(TFT_WHITE, TFT_BLACK);
 
-          tft.setTextColor(TFT_WHITE, TFT_BLACK);
-          tft.setTextFont(2);
-
-          tft.drawCentreString("     DUCO MINER", 80, 0, 2);
-          tft.drawString(ping + "ms", 0, 0, 2);
-          tft.pushImage(35, 0, 17, 17, duco_alt_small);
+          tft_buffer.pushImage(0, 0, 17, 17, duco_alt_small);
+          tft_buffer.drawString("DUCO MINER", 19, 0, 2);
+          
 
           // Network
           if (WiFi.RSSI() > -40) {
-              tft.drawXBitmap(144, 0, image_network_4_bars_bits, 15, 16, TFT_GREEN);
+              tft_buffer.drawXBitmap(144, 0, image_network_4_bars_bits, 15, 16, TFT_GREEN);
           } else if (WiFi.RSSI() > -60) {
-              tft.drawXBitmap(144, 0, image_network_3_bars_bits, 15, 16, TFT_GREEN);
+              tft_buffer.drawXBitmap(144, 0, image_network_3_bars_bits, 15, 16, TFT_GREEN);
           } else if (WiFi.RSSI() > -75) {
-              tft.drawXBitmap(144, 0, image_network_2_bars_bits, 15, 16, TFT_YELLOW);
+              tft_buffer.drawXBitmap(144, 0, image_network_2_bars_bits, 15, 16, TFT_YELLOW);
           } else {
-              tft.drawXBitmap(144, 0, image_network_1_bar_bits, 15, 16, TFT_RED); // Example: red for low signal
+              tft_buffer.drawXBitmap(144, 0, image_network_1_bar_bits, 15, 16, TFT_RED); // Example: red for low signal
           }
+          tft_buffer.setTextDatum(MR_DATUM);
+          tft_buffer.drawString(ping, 142, 0, 2);
+          tft_buffer.setTextDatum(TL_DATUM);
 
           // Lines
-          tft.drawLine(0, 18, 160, 18, TFT_DUCO_GRAY);
-          tft.drawLine(80, 18, 80, 80, TFT_DUCO_GRAY);
-          tft.drawLine(0, 58, 160, 58, TFT_DUCO_GRAY);
+          tft_buffer.drawLine(0, 18, 160, 18, TFT_DUCO_GRAY);
+          tft_buffer.drawLine(80, 18, 80, 80, TFT_DUCO_GRAY);
+          tft_buffer.drawLine(0, 58, 160, 58, TFT_DUCO_GRAY);
 
           // Hashrate
-          tft.setTextColor(TFT_DUCO_ORANGE, TFT_BLACK);
-          tft.drawString("HR:", 0, 22, 1);
-          tft.drawString(hashrate, 0, 30, 4);
+          tft_buffer.setTextColor(TFT_DUCO_ORANGE, TFT_BLACK);
+          tft_buffer.drawString("HR:", 0, 22, 1);
+          tft_buffer.drawString(hashrate, 0, 30, 4);
 
           // Shares
-          tft.setTextColor(TFT_WHITE, TFT_BLACK);
-          tft.setTextFont(1);
-          tft.drawString("Shares:", 84, 22, 1);
-          tft.drawString(accepted_shares + " act", 84, 31, 1);
-          //tft.fillCircle(87, 31+2+1, 2, TFT_GREEN);
-          tft.drawString(total_shares + " tot", 84, 40, 1);
-          //tft.fillCircle(87, 40+2+1, 2, 0xd58a);
-          tft.drawString(sharerate + " rte", 84, 48, 1);
+          tft_buffer.setTextColor(TFT_WHITE, TFT_BLACK);
+          tft_buffer.drawString("Shares:", 84, 22, 1);
+          tft_buffer.drawString(accepted_shares + " act", 84, 31, 1);
+          tft_buffer.drawString(total_shares + " tot", 84, 40, 1);
+          tft_buffer.drawString(sharerate + " rte", 84, 48, 1);
 
           // Uptime
-          tft.drawString("Uptime:", 0, 60, 1);
-          tft.drawString(uptime, 0, 69, 1);
+          tft_buffer.drawString("Uptime:", 0, 60, 1);
+          tft_buffer.drawString(uptime, 0, 69, 1);
 
           // Difficulty
-          tft.drawString("Diff:", 84, 60, 1);
-          tft.drawString(difficulty, 84, 69, 1);
-          
+          tft_buffer.drawString("Diff:", 84, 60, 1);
+          tft_buffer.drawString(difficulty, 84, 69, 1);
+
+          tft_buffer.pushSprite(0, 0);
       #endif
     }
 
