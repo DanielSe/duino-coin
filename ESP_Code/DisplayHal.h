@@ -285,7 +285,6 @@
                                 const String& difficulty, const String& sharerate, const String& ping, const String& accept_rate) {
       // Ran after each found share
       // Abstraction layer: displaying mining results
-      Serial.println("Displaying mining results");
       
       #if defined(DISPLAY_SSD1306)
           u8g2.clearBuffer();
@@ -421,6 +420,7 @@
     void display_mining_results(const String& hashrate, const String& accepted_shares, const String& total_shares, const String& uptime, const String& node, 
                                 const String& difficulty, const String& sharerate, const String& ping, const String& accept_rate) {
       #if defined(ESP32) && CORE == 2
+        Serial.println("Displaying mining results on queue");
         DisplayData dataToSend;
         dataToSend.hashrate = hashrate;
         dataToSend.accepted_shares;
@@ -435,6 +435,7 @@
         xQueueSend(displayQueue, &dataToSend, 0);
         vTaskDelay(pdMS_TO_TICKS(100));
       #else
+        Serial.println("Displaying mining results directly");
         display_mining_results_i(hashrate, accepted_shares, total_shares, uptime, node, difficulty, sharerate, ping, accept_rate);
       #endif
     }

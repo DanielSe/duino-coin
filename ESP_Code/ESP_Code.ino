@@ -59,11 +59,6 @@
   #include "Dashboard.h"
 #endif
 
-#if defined(DISPLAY_SSD1306) || defined(DISPLAY_16X2) || defined(DISPLAY_ST7735)
-  #define HAS_DISPLAY 1
-  #include "DisplayHal.h"
-#endif
-
 #if !defined(ESP8266) && defined(DISABLE_BROWNOUT)
     #include "soc/soc.h"
     #include "soc/rtc_cntl_reg.h"
@@ -100,6 +95,11 @@
     } DisplayData;
 
     QueueHandle_t displayQueue;
+#endif
+
+#if defined(DISPLAY_SSD1306) || defined(DISPLAY_16X2) || defined(DISPLAY_ST7735)
+  #define HAS_DISPLAY 1
+  #include "DisplayHal.h"
 #endif
 
 #if defined(WEB_DASHBOARD)
@@ -787,7 +787,9 @@ void setup() {
       xTaskCreatePinnedToCore(system_events_func, "system_events_func", 10000, NULL, 1, NULL, 0);
       xTaskCreatePinnedToCore(task1_func, "task1_func", 10000, NULL, 1, &Task1, 0);
       xTaskCreatePinnedToCore(task2_func, "task2_func", 10000, NULL, 1, &Task2, 1);
-      xTaskCreatePinnedToCore(displayTask, "displayTask", 4096, NULL, 1, NULL, 1);
+      #if defined(HAS_DISPLAY)
+        xTaskCreatePinnedToCore(displayTask, "displayTask", 4096, NULL, 1, NULL, 1);
+      #endif
     #endif
 }
 
@@ -801,7 +803,7 @@ void system_events_func(void* parameter) {
   }
 }
 
-#if defined(ESP32) && CORE == 2
+#if defined(HAS_DISPLAY) && defined(ESP32) && CORE == 2
   void displayTask(void *parameters) {
     DisplayData receivedData;
 
