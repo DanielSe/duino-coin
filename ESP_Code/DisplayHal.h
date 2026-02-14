@@ -3,6 +3,8 @@
 #ifndef DISPLAY_HAL_H
 #define DISPLAY_HAL_H
 
+#include <freertos/task.h>
+
 String get_features_str();
 String getChipModel();
 void screen_setup();
@@ -85,16 +87,17 @@ String getChipModel() {
 }
     
 void display_info(const String& message) {
-  #if defined(ESP32) && CORE == 2
+  char* taskName = pcTaskGetTaskName(NULL);
+  if (strcmp(taskName, "displayTask") == 0) {
     Serial.println("Displaying info on queue: " + message);
     DisplayData dataToSend;
     dataToSend.message = message;
     xQueueSend(displayQueue, &dataToSend, 0);
     vTaskDelay(pdMS_TO_TICKS(1));
-  #else
+  } else {
     Serial.println("Displaying info");
     display_info_i(message);
-  #endif
+  }
 }
 
 void display_mining_results(const String& hashrate, const String& accepted_shares, const String& total_shares, const String& uptime, const String& node, 
