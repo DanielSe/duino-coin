@@ -101,6 +101,17 @@
 
           tft_buffer.createSprite(160, 80);
 
+          tft_info_buffer.createSprite(160, 80);
+          tft_info_buffer.fillSprite(TFT_BLACK);
+          tft_info_buffer.setTextColor(TFT_WHITE, TFT_BLACK);
+          tft_info_buffer.pushImage(0, 0, 17, 17, duco_alt_small);
+          tft_info_buffer.drawString("DUCO MINER " + String(SOFTWARE_VERSION), 19, 0, 2);
+          tft_info_buffer.drawLine(0, 18, 160, 18, TFT_DUCO_GRAY);
+          tft_info_buffer.setViewport(0, 20, 160, 60);
+          tft_info_buffer.setTextFont(1);
+          tft_info_buffer.setTextWrap(true, false);
+          tft_info_buffer.setTextColor(TFT_WHITE, TFT_BLACK);
+
           pinMode(38, OUTPUT);
           digitalWrite(38, 0);
       #endif
@@ -283,16 +294,34 @@
       #endif
 
       #if defined(DISPLAY_ST7735)
-          tft.fillScreen(TFT_BLACK);
-          tft.setTextColor(TFT_WHITE, TFT_BLACK);
+          const int h = 60;
+          const int w = 160;
+          const int fh = tft_info_buffer.fontHeight();
 
-          tft.setTextFont(2);
+          const int textPixelWidth = tft_info_buffer.textWidth(message);
+          const int linesNeeded = (textPixelWidth / w) + 1;
+          const int totalHeightNeeded = linesNeeded * fh;
 
-          tft.setCursor(0, 2);
+          const int currentY = tft_info_buffer.getCursorY();
+          const int spaceRemaining = h - currentY;
 
-          tft.println("Duino-Coin");
-          tft.println(SOFTWARE_VERSION);
-          tft.println(message);
+          // Message exceeds available space, just render the end of it
+          if (totalHeightNeeded > h) {
+            tft_info_buffer.fillSprite(TFT_BLACK);
+            tft_info_buffer.setCursor(0, h - totalHeightNeeded);
+          }
+          // Message fits, but we need to scroll to make space
+          else if (totalHeightNeeded > spaceRemaining) {
+            const int scrollAmount = totalHeightNeeded - spaceRemaining;
+            tft_info_buffer.scroll(0, -scrollAmount);
+
+            tft_info_buffer.setCursor(tft_info_buffer.getCursorX(), currentY - scrollAmount);
+
+            tft_info_buffer.fillRect(0, h - scrollAmount, w, scrollAmount, TFT_BLACK);
+          }
+
+          tft_info_buffer.println(message);
+          tft_info_buffer.pushSprite(0, 0);
       #endif
     }
 
@@ -391,11 +420,10 @@
 
       #if defined(DISPLAY_ST7735)
           tft_buffer.fillSprite(TFT_BLACK);
-          
           tft_buffer.setTextColor(TFT_WHITE, TFT_BLACK);
-
           tft_buffer.pushImage(0, 0, 17, 17, duco_alt_small);
-          tft_buffer.drawString("DUCO MINER", 19, 0, 2);
+          tft_buffer.drawString("DUCO MINER " + String(SOFTWARE_VERSION), 19, 0, 2);
+          tft_buffer.drawLine(0, 18, 160, 18, TFT_DUCO_GRAY);
 
           // Network
           if (WiFi.RSSI() > -40) {

@@ -788,7 +788,7 @@ void setup() {
       xTaskCreatePinnedToCore(task1_func, "task1_func", 10000, NULL, 1, &Task1, 0);
       xTaskCreatePinnedToCore(task2_func, "task2_func", 10000, NULL, 1, &Task2, 1);
       #if defined(HAS_DISPLAY)
-        xTaskCreatePinnedToCore(displayTask, "displayTask", 4096, NULL, 1, NULL, 1);
+        xTaskCreatePinnedToCore(displayTask, "displayTask", 2048, NULL, 1, NULL, 1);
       #endif
     #endif
 }
